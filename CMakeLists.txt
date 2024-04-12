@@ -72,4 +72,6 @@ obj_unit_test(json_parser
   DEPENDENCIES json_parser
 )
 
+add_executable(demo src/main.cpp)
 
+target_link_libraries(demo nlohmann_json_schema_validator::validator)
