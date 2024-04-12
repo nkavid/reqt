@@ -1,0 +1,6 @@
+[submodule "thirdparty/nlohmann_json"]
+	path = thirdparty/nlohmann_json
+	url = git@github.com:nlohmann/json.git
+[submodule "thirdparty/pboettch_json-schema-validator"]
+	path = thirdparty/pboettch_json-schema-validator
+	url = git@github.com:pboettch/json-schema-validator.git
