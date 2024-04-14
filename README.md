@@ -4,9 +4,11 @@ Requirements Tracing project with JSON
 
 ## References
 
- - [json-schema tools](https://json-schema.org/implementations)
-
  - Developing Safety-Critical Software - Leanna Rierson
+
+ - Software Requirements - Joy Beatty, Karl Wiegers
+
+ - [json-schema tools](https://json-schema.org/implementations)
 
  - [Awesome JSON](https://github.com/burningtree/awesome-json)
 
