@@ -9,4 +9,4 @@ class JSONParser
   public:
     explicit JSONParser(const std::filesystem::path& filepath);
 };
-} // namespace gfx::utils
+} // namespace reqt

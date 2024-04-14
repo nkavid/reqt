@@ -1,9 +1,11 @@
-#include <nlohmann/json-schema.hpp>
-#include <iostream>
-#include <iomanip>
 #include <cstdlib>
+#include <iomanip>
+#include <iostream>
 
-static nlohmann::json person_schema = R"(
+#include <nlohmann/json-schema.hpp>
+
+// NOLINTNEXTLINE(cert-err58-cpp)
+static nlohmann::json g_person_schema = R"(
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "A person",
@@ -37,37 +39,59 @@ static nlohmann::json person_schema = R"(
 
 )"_json;
 
-static nlohmann::json bad_person = {{"age", 42}};
-static nlohmann::json good_person = {{"name", "Albert"}, {"age", 42}, {"address", {{"street", "Main Street"}}}};
-static nlohmann::json good_defaulted_person = {{"name", "Knut"}, {"age", 69}, {"address", {}}};
+// NOLINTBEGIN
+static nlohmann::json g_bad_person = {
+    {"age", 42}
+};
+
+static nlohmann::json g_good_person = {
+    {   "name",                    "Albert"},
+    {    "age",                          42},
+    {"address", {{"street", "Main Street"}}}
+};
+
+static nlohmann::json g_good_defaulted_person = {
+    {   "name", "Knut"},
+    {    "age",     69},
+    {"address",     {}}
+};
+// NOLINTEND
 
 int main()
 {
   nlohmann::json_schema::json_validator validator{};
 
-  validator.set_root_schema(person_schema);
+  validator.set_root_schema(g_person_schema);
 
-	class custom_error_handler : public nlohmann::json_schema::basic_error_handler
-	{
-		void error(const nlohmann::json::json_pointer &ptr, const nlohmann::json &instance, const std::string &message) override
-		{
-			nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-			std::cerr << "ERROR: '" << ptr << "' - '" << instance << "': " << message << "\n";
-		}
-	};
+  class CustomErrorHandler : public nlohmann::json_schema::basic_error_handler
+  {
+      void error(const nlohmann::json::json_pointer& ptr,
+                 const nlohmann::json& instance,
+                 const std::string& message) override
+      {
+        nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
+        std::cerr << "ERROR: '" << ptr << "' - '" << instance << "': " << message
+                  << "\n";
+      }
+  };
 
-	for (auto &person : {bad_person, good_person}) {
-		std::cout << "About to validate this person:\n"
-		          << std::setw(2) << person << std::endl;
+  for (const auto& person : {g_bad_person, g_good_person})
+  {
+    std::cout << "About to validate this person:\n"
+              << std::setw(2) << person << '\n';
 
-		custom_error_handler err;
-		validator.validate(person, err); // validate the document
+    CustomErrorHandler err;
+    validator.validate(person, err);
 
-		if (err)
-			std::cerr << "Validation failed\n";
-		else
-			std::cout << "Validation succeeded\n";
-	}
+    if (err)
+    {
+      std::cerr << "Validation failed\n";
+    }
+    else
+    {
+      std::cout << "Validation succeeded\n";
+    }
+  }
 
   return EXIT_SUCCESS;
 }
