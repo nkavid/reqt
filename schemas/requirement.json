@@ -12,7 +12,12 @@
       "type": "string"
     },
     "trace": {
-      "type": "string"
+      "properties": {
+        "parent": {
+          "type": "string"
+        }
+      },
+      "type": "object"
     }
   },
   "required": [
@@ -20,5 +25,6 @@
     "description",
     "trace"
   ],
-  "type": "object"
+  "type": "object",
+  "additionalProperties": false
 }

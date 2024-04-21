@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "title": "FizzBuzz",
+    "identification_acronym": "FB"
+  },
+  "contents": [
+    {
+      "section": "applyFizzBuzz()",
+      "requirements": [
+        {
+          "identification": "LLR-FB-001",
+          "description": "getFizzBuzz() shall convert input integer to an output string",
+          "trace": {
+            "parent": "HLR-FB-001"
+          }
+        },
+        {
+          "identification": "LLR-FB-001",
+          "description": "Output string shall be 'fizz' if input integer is divisible by 3",
+          "trace": {
+            "parent": "HLR-FB-001"
+          }
+        },
+        {
+          "identification": "LLR-FB-003",
+          "description": "Output string shall be 'buzz' if input integer is divisible by 5",
+          "trace": {
+            "parent": "HLR-FB-001"
+          }
+        },
+        {
+          "identification": "LLR-FB-004",
+          "description": "Output string shall be 'fizzbuzz' if input integer is divisible by both 3 and 5",
+          "trace": {
+            "parent": "HLR-FB-001"
+          }
+        },
+        {
+          "identification": "LLR-FB-005",
+          "description": "The implementation should be very fast",
+          "trace": {
+            "parent": "HLR-FB-001"
+          }
+        }
+      ]
+    }
+  ]
+}

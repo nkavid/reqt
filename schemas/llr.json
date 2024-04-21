@@ -2,11 +2,26 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Low Level Requirements",
   "properties": {
-    "requirements": {
+    "metadata": {
+      "type": "object"
+    },
+    "contents": {
       "type": "array",
-      "items": {"$ref": "requirement.json"}
+      "items": {
+        "properties": {
+          "section": {
+            "type": "string"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "$ref": "requirement.json"
+            }
+          }
+        }
+      }
     }
   },
   "type": "object",
-  "unevaluatedProperties": false
+  "additionalProperties": false
 }

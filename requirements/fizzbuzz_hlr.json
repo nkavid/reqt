@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "title": "FizzBuzz",
+    "identification_acronym": "FB"
+  },
+  "contents": [
+    {
+      "section": "FizzBuzz",
+      "requirements": [
+        {
+          "identification": "HLR-FB-001",
+          "description": "Component shall process an array of integers according to FizzBuzz algorithm",
+          "trace": ""
+        }
+      ]
+    }
+  ]
+}
