@@ -1,97 +1,139 @@
 #include <cstdlib>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <stdexcept>
 
 #include <nlohmann/json-schema.hpp>
 
-// NOLINTNEXTLINE(cert-err58-cpp)
-static nlohmann::json g_person_schema = R"(
+static void loader(const nlohmann::json_uri& uri, nlohmann::json& schema)
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "A person",
-    "properties": {
-      "name": {
-          "description": "Name",
-          "type": "string"
-      },
-      "age": {
-          "description": "Age of the person",
-          "type": "number",
-          "minimum": 2,
-          "maximum": 200
-      },
-      "address":{
-        "type": "object",
-        "properties":{
-          "street":{
-            "type": "string",
-            "default": "Abbey Road"
-          }
-        }
-      }
-    },
-    "required": [
-                 "name",
-                 "age"
-                 ],
-    "type": "object"
+  if (uri.location() == "http://json-schema.org/draft-07/schema")
+  {
+    schema = nlohmann::json_schema::draft7_schema_builtin;
+    return;
+  }
+
+  std::string fn = "/home/divak/repos/slask/reqt/schemas";
+
+  fn += uri.path();
+  std::cerr << fn << "\n";
+
+  std::fstream s(fn.c_str());
+  if (!s.good())
+    throw std::invalid_argument("could not open " + uri.url()
+                                + " for schema loading\n");
+
+  try
+  {
+    s >> schema;
+  }
+  catch (std::exception& e)
+  {
+    throw e;
+  }
+  std::cout << schema << '\n';
 }
 
-)"_json;
-
-// NOLINTBEGIN
-static nlohmann::json g_bad_person = {
-    {"age", 42}
-};
-
-static nlohmann::json g_good_person = {
-    {   "name",                    "Albert"},
-    {    "age",                          42},
-    {"address", {{"street", "Main Street"}}}
-};
-
-static nlohmann::json g_good_defaulted_person = {
-    {   "name", "Knut"},
-    {    "age",     69},
-    {"address",     {}}
-};
-// NOLINTEND
-
-int main()
+static std::string base64_decode(const std::string& in)
 {
-  nlohmann::json_schema::json_validator validator{};
+  std::string out;
 
-  validator.set_root_schema(g_person_schema);
+  std::vector<int> T(256, -1);
+  for (int i = 0; i < 64; i++)
+    T["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[i]] = i;
 
-  class CustomErrorHandler : public nlohmann::json_schema::basic_error_handler
+  unsigned val = 0;
+  int valb     = -8;
+  for (uint8_t c : in)
   {
-      void error(const nlohmann::json::json_pointer& ptr,
-                 const nlohmann::json& instance,
-                 const std::string& message) override
-      {
-        nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-        std::cerr << "ERROR: '" << ptr << "' - '" << instance << "': " << message
-                  << "\n";
-      }
-  };
+    if (c == '=')
+      break;
 
-  for (const auto& person : {g_bad_person, g_good_person})
-  {
-    std::cout << "About to validate this person:\n"
-              << std::setw(2) << person << '\n';
-
-    CustomErrorHandler err;
-    validator.validate(person, err);
-
-    if (err)
+    if (T[c] == -1)
     {
-      std::cerr << "Validation failed\n";
+      throw std::invalid_argument(
+          "base64-decode: unexpected character in encode string: '" + std::string(1, c)
+          + "'");
     }
-    else
+    val = (val << 6) + T[c];
+    valb += 6;
+    if (valb >= 0)
     {
-      std::cout << "Validation succeeded\n";
+      out.push_back(char((val >> valb) & 0xFF));
+      valb -= 8;
     }
   }
+  return out;
+}
+
+static void content(const std::string& contentEncoding,
+                    const std::string& contentMediaType,
+                    const nlohmann::json& instance)
+{
+  std::string content = instance;
+
+  if (contentEncoding == "base64")
+    content = base64_decode(instance);
+  else if (contentEncoding != "")
+    throw std::invalid_argument("unable to check for contentEncoding '"
+                                + contentEncoding + "'");
+
+  if (contentMediaType == "application/json")
+    auto dummy = nlohmann::json::parse(content); // throws if conversion fails
+  else if (contentMediaType != "")
+    throw std::invalid_argument("unable to check for contentMediaType '"
+                                + contentMediaType + "'");
+}
+
+nlohmann::json readJSON(const char* filename)
+{
+  std::ifstream file{filename, std::ios::ate | std::ios::binary};
+
+  if (!file.is_open())
+  {
+    throw std::runtime_error(std::string{"gfx::failed to open file! "} + filename);
+  }
+  auto fileSize = file.tellg();
+  std::vector<char> buffer(static_cast<size_t>(fileSize));
+  file.seekg(0);
+  file.read(buffer.data(), fileSize);
+  file.close();
+
+  return nlohmann::json::parse(buffer);
+}
+
+class CustomErrorHandler : public nlohmann::json_schema::basic_error_handler
+{
+    void error(const nlohmann::json::json_pointer& ptr,
+               const nlohmann::json& instance,
+               const std::string& message) override
+    {
+      nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
+      std::cerr << "ERROR: '" << ptr << "' - '" << instance << "': " << message << "\n";
+    }
+};
+
+int main(int argc, char** argv)
+{
+  auto schema = readJSON(argv[1]);
+
+  nlohmann::json_schema::json_validator
+      validator{loader, nlohmann::json_schema::default_string_format_check, content};
+
+  validator.set_root_schema(schema);
+
+  CustomErrorHandler errorHandler{};
+
+  const static nlohmann::json requirement = {
+      {"identification",                                              "HLR-FB-001"},
+      {   "description", "The result shall be 'fizz' if integer is divisible by 3"},
+      {         "hmmmm",                                                        ""},
+      {         "dsgaa",                                                        ""},
+      {         "hmmmm",                                                        ""}
+  };
+
+  validator.validate(requirement, errorHandler);
 
   return EXIT_SUCCESS;
 }
