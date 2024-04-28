@@ -10,6 +10,11 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+  - checkout: self
+    lfs: false
+    submodules: true
+    persistCredentials: true
+
   - task: Cache@2
     displayName: "Docker: Image cache task"
     inputs:
@@ -20,12 +25,12 @@ steps:
   - script: |
       docker load -i $(Pipeline.Workspace)/docker_cache/cache.tar
     displayName: 'Docker: Load image'
-    condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
+    condition: and(not(canceled()), not(failed()), eq(variables.CACHE_RESTORED, 'true'))
 
   - script: |
       ./docker.sh image
     displayName: 'Docker: Build image'
-    condition: and(not(canceled()), ne(variables.CACHE_RESTORED, 'true'))
+    condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
 
   - script: |
       mkdir -p $(Pipeline.Workspace)/docker_cache
@@ -36,7 +41,9 @@ steps:
   - script: |
       ./docker.sh cpp
     displayName: 'Build: C++ build'
+    condition: and(not(canceled()), not(failed()))
 
   - script: |
       ./docker.sh python
     displayName: 'Build: Python build'
+    condition: and(not(canceled()), not(failed()))
