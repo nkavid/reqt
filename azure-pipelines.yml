@@ -4,7 +4,7 @@ trigger:
 variables:
   project: 'nkavid'
   repository: 'reqt'
-  tag: '0.0.1'
+  tag: '0.0.2'
 
 pool:
   vmImage: ubuntu-latest

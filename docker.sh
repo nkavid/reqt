@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASENAME="$(basename "$0")"
-DOCKER_IMAGE_NAME="nkavid/reqt:0.0.1"
+DOCKER_IMAGE_NAME="nkavid/reqt:0.0.2"
 SOURCE_PATH=$(dirname "$0")
 
 if [[ "$1" == "image" ]]; then
