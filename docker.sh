@@ -6,7 +6,7 @@ SOURCE_PATH=$(dirname "$0")
 
 if [[ "$1" == "image" ]]; then
   echo "${BASENAME} building..."
-  docker build -t "${DOCKER_IMAGE_NAME}" .
+  docker build --tag "${DOCKER_IMAGE_NAME}" .
 fi
 
 if [[ "$1" == "cpp" ]]; then
