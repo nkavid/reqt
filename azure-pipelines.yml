@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
@@ -14,40 +9,34 @@ variables:
 pool:
   vmImage: ubuntu-latest
 
-jobs:
-  - job:
-    displayName: "Docker steps"
-    steps:
-    - task: Cache@2
-      displayName: "Docker: Image cache task"
-      inputs:
-        key: 'docker | "$(Agent.OS)" | "$(tag)" | cache'
-        path: $(Pipeline.Workspace)/docker_cache
-        cacheHitVar: CACHE_RESTORED
-      
-    - script: |
-        docker load -i $(Pipeline.Workspace)/docker_cache/cache.tar
-      displayName: 'Docker: Load image'
-      condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
+steps:
+  - task: Cache@2
+    displayName: "Docker: Image cache task"
+    inputs:
+      key: 'docker | "$(Agent.OS)" | "$(tag)" | cache'
+      path: $(Pipeline.Workspace)/docker_cache
+      cacheHitVar: CACHE_RESTORED
 
-    - task: Docker@2
-      displayName: "Docker: Build image"
-      inputs:
-        command: 'build'
-        repository: '$(project)-$(repository)'
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-        tags: '$(tag)'
-      condition: and(not(canceled()), ne(variables.CACHE_RESTORED, 'true'))
+  - script: |
+      docker load -i $(Pipeline.Workspace)/docker_cache/cache.tar
+    displayName: 'Docker: Load image'
+    condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
 
-    - script: |
-        mkdir -p $(Pipeline.Workspace)/docker_cache
-        docker save -o $(Pipeline.Workspace)/docker_cache/cache.tar $(project)-$(repository):$(tag)
-      displayName: 'Docker: Save image'
-      condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
+  - script: |
+      ./docker.sh image
+    displayName: 'Docker: Build image'
+    condition: and(not(canceled()), ne(variables.CACHE_RESTORED, 'true'))
 
-  - job:
-    displayName: "Build steps"
-    steps:
-    - script: |
-        docker run -v $(Build.SourcesDirectory):/workspace -t $(project)-$(repository):$(tag) bash -c "mkdir -p build"
-      displayName: 'Build: Build'
+  - script: |
+      mkdir -p $(Pipeline.Workspace)/docker_cache
+      docker save -o $(Pipeline.Workspace)/docker_cache/cache.tar $(project)/$(repository):$(tag)
+    displayName: 'Docker: Save image'
+    condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
+
+  - script: |
+      ./docker.sh cpp
+    displayName: 'Build: C++ build'
+
+  - script: |
+      ./docker.sh python
+    displayName: 'Build: Python build'
