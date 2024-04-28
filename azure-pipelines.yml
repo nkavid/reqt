@@ -6,14 +6,48 @@
 trigger:
 - main
 
+variables:
+  project: 'nkavid'
+  repository: 'reqt'
+  tag: '0.0.1'
+
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+jobs:
+  - job:
+    displayName: "Docker steps"
+    steps:
+    - task: Cache@2
+      displayName: "Docker: Image cache task"
+      inputs:
+        key: 'docker | "$(Agent.OS)" | "$(tag)" | cache'
+        path: $(Pipeline.Workspace)/docker_cache
+        cacheHitVar: CACHE_RESTORED
+      
+    - script: |
+        docker load -i $(Pipeline.Workspace)/docker_cache/cache.tar
+      displayName: 'Docker: Load image'
+      condition: and(not(canceled()), eq(variables.CACHE_RESTORED, 'true'))
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    - task: Docker@2
+      displayName: "Docker: Build image"
+      inputs:
+        command: 'build'
+        repository: '$(project)-$(repository)'
+        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        tags: '$(tag)'
+      condition: and(not(canceled()), ne(variables.CACHE_RESTORED, 'true'))
+
+    - script: |
+        mkdir -p $(Pipeline.Workspace)/docker_cache
+        docker save -o $(Pipeline.Workspace)/docker_cache/cache.tar $(project)-$(repository):$(tag)
+      displayName: 'Docker: Save image'
+      condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
+
+  - job:
+    displayName: "Build steps"
+    steps:
+    - script: |
+        docker run -v $(Build.SourcesDirectory):/workspace -t $(project)-$(repository):$(tag) bash -c "mkdir -p build"
+      displayName: 'Build: Build'
