@@ -47,3 +47,8 @@ steps:
       ./docker.sh python
     displayName: 'Build: Python build'
     condition: and(not(canceled()), not(failed()))
+
+  - script: |
+      ./docker.sh check
+    displayName: 'Check: Run linters and autoformatters'
+    condition: and(not(canceled()), not(failed()))
