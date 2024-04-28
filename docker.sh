@@ -12,10 +12,10 @@ fi
 if [[ "$1" == "cpp" ]]; then
   echo "${BASENAME} running..."
   CONTAINER_NAME="nkavid-reqt-container"
-  docker create --name "${CONTAINER_NAME}" -v ${SOURCE_PATH}:/workspace -t ${DOCKER_IMAGE_NAME}
+  docker create --name "${CONTAINER_NAME}" -v "${SOURCE_PATH}:/workspace" -t "${DOCKER_IMAGE_NAME}"
   docker start "${CONTAINER_NAME}"
   docker exec "${CONTAINER_NAME}" bash -c "echo ${PWD}"
-  docker exec "${CONTAINER_NAME}" bash -c "cmake -Bbuild -S$SOURCE_PATH"
+  docker exec "${CONTAINER_NAME}" bash -c "cmake -Bbuild -S${SOURCE_PATH}"
   docker exec "${CONTAINER_NAME}" bash -c "cmake --build build -j8"
   docker exec "${CONTAINER_NAME}" bash -c "./build/bin/demo schemas/requirement.json"
   docker kill "${CONTAINER_NAME}" > /dev/null
@@ -25,7 +25,7 @@ fi
 if [[ "$1" == "python" ]]; then
   echo "${BASENAME} running..."
   CONTAINER_NAME="nkavid-reqt-container"
-  docker create --name "${CONTAINER_NAME}" -v ${SOURCE_PATH}:/workspace -t ${DOCKER_IMAGE_NAME}
+  docker create --name "${CONTAINER_NAME}" -v "${SOURCE_PATH}:/workspace" -t "${DOCKER_IMAGE_NAME}"
   docker start "${CONTAINER_NAME}"
   docker exec "${CONTAINER_NAME}" bash -c "python3 script/main.py"
   docker kill "${CONTAINER_NAME}" > /dev/null
