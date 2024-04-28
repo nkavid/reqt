@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -19,8 +19,8 @@ project(
 Include(FetchContent)
 
 set(JSON_SystemInclude ON)
-add_subdirectory(thirdparty/nlohmann_json EXCLUDE_FROM_ALL SYSTEM)
-add_subdirectory(thirdparty/pboettch_json-schema-validator EXCLUDE_FROM_ALL SYSTEM)
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/nlohmann_json EXCLUDE_FROM_ALL)
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/pboettch_json-schema-validator EXCLUDE_FROM_ALL)
 
 FetchContent_Declare(
   Catch2
