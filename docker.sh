@@ -31,3 +31,18 @@ if [[ "$1" == "python" ]]; then
   docker kill "${CONTAINER_NAME}" > /dev/null
   docker rm "${CONTAINER_NAME}"
 fi
+
+if [[ "$1" == "check" ]]; then
+  echo "${BASENAME} checks..."
+  CONTAINER_NAME="nkavid-reqt-container"
+  docker create --name "${CONTAINER_NAME}" -v "${SOURCE_PATH}:/workspace" -t "${DOCKER_IMAGE_NAME}"
+  docker start "${CONTAINER_NAME}"
+  echo "${BASENAME} clang-tidy..."
+  docker exec "${CONTAINER_NAME}" bash -c "clang-tidy -p build src/main.cpp"
+  echo "${BASENAME} clang-format..."
+  docker exec "${CONTAINER_NAME}" bash -c "clang-format --dry-run --Werror src/main.cpp"
+  echo "${BASENAME} json..."
+  docker exec "${CONTAINER_NAME}" bash -c "./bin/format-json.sh schemas/requirement.json"
+  docker kill "${CONTAINER_NAME}" > /dev/null
+  docker rm "${CONTAINER_NAME}"
+fi
