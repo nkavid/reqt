@@ -30,6 +30,11 @@ steps:
       path: $(Pipeline.Workspace)/s/build
       cacheHitVar: BUILD_CACHE_RESTORED
 
+  - download: current
+    displayName: 'Download: Build'
+    artifact: MainBuild
+    condition: and(not(canceled()), not(failed()), ne(variables.BUILD_CACHE_RESTORED, 'true'))
+
   - script: |
       docker load -i $(Pipeline.Workspace)/docker_cache/cache.tar
     displayName: 'Docker: Load image'
@@ -60,3 +65,9 @@ steps:
       ./docker.sh check
     displayName: 'Check: Run linters and autoformatters'
     condition: and(not(canceled()), not(failed()))
+
+  - publish: $(System.DefaultWorkingDirectory)/build
+    displayName: 'Publish: Build'
+    artifact: MainBuild
+    condition: and(not(canceled()), not(failed()), eq(variables.Build.SourceBranchName, 'main'))
+
