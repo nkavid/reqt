@@ -10,16 +10,19 @@ if [[ "$1" == "image" ]]; then
 fi
 
 if [[ "$1" == "cpp" ]]; then
+  RESULT="SUCCESS"
   echo "${BASENAME} running..."
   CONTAINER_NAME="nkavid-reqt-container"
   docker create --name "${CONTAINER_NAME}" -v "${SOURCE_PATH}:/workspace" -t "${DOCKER_IMAGE_NAME}"
   docker start "${CONTAINER_NAME}"
   docker exec "${CONTAINER_NAME}" bash -c "git config --global --add safe.directory '*'"
-  docker exec "${CONTAINER_NAME}" bash -c "cmake -Bbuild -S${SOURCE_PATH}"
-  docker exec "${CONTAINER_NAME}" bash -c "cmake --build build -j8"
-  docker exec "${CONTAINER_NAME}" bash -c "./build/bin/demo schemas/requirement.json"
+  docker exec "${CONTAINER_NAME}" bash -c "cmake -Bbuild -S${SOURCE_PATH}" || RESULT="FAILURE"
+  docker exec "${CONTAINER_NAME}" bash -c "cmake --build build -j8" || RESULT="FAILURE"
+  docker exec "${CONTAINER_NAME}" bash -c "./build/bin/demo schemas/requirement.json" || RESULT="FAILURE"
   docker kill "${CONTAINER_NAME}" > /dev/null
   docker rm "${CONTAINER_NAME}"
+  [[ "${RESULT}" == "FAILURE" ]] && exit 1
+  exit 0
 fi
 
 if [[ "$1" == "python" ]]; then
@@ -33,16 +36,16 @@ if [[ "$1" == "python" ]]; then
 fi
 
 if [[ "$1" == "check" ]]; then
+  RESULT="SUCCESS"
   echo "${BASENAME} checks..."
   CONTAINER_NAME="nkavid-reqt-container"
   docker create --name "${CONTAINER_NAME}" -v "${SOURCE_PATH}:/workspace" -t "${DOCKER_IMAGE_NAME}"
   docker start "${CONTAINER_NAME}"
-  echo "${BASENAME} clang-tidy..."
   docker exec "${CONTAINER_NAME}" bash -c "clang-tidy -p build src/main.cpp"
-  echo "${BASENAME} clang-format..."
-  docker exec "${CONTAINER_NAME}" bash -c "clang-format --dry-run --Werror src/main.cpp"
-  echo "${BASENAME} json..."
-  docker exec "${CONTAINER_NAME}" bash -c "./bin/format-json.sh schemas/requirement.json"
+  docker exec "${CONTAINER_NAME}" bash -c "clang-format --dry-run --Werror src/main.cpp" || RESULT="FAILURE"
+  docker exec "${CONTAINER_NAME}" bash -c "./bin/format-json.sh schemas/requirement.json" || RESULT="FAILURE"
   docker kill "${CONTAINER_NAME}" > /dev/null
   docker rm "${CONTAINER_NAME}"
+  [[ "${RESULT}" == "FAILURE" ]] && exit 1
+  exit 0
 fi
