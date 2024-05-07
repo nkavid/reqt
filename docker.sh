@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASENAME="$(basename "$0")"
-DOCKER_IMAGE_NAME="nkavid/reqt:0.0.2"
+DOCKER_IMAGE_NAME="nkavid/reqt:0.0.3"
 SOURCE_PATH=$(dirname "$0")
 
 if [[ "$1" == "image" ]]; then
@@ -14,7 +14,7 @@ if [[ "$1" == "cpp" ]]; then
   CONTAINER_NAME="nkavid-reqt-container"
   docker create --name "${CONTAINER_NAME}" -v "${SOURCE_PATH}:/workspace" -t "${DOCKER_IMAGE_NAME}"
   docker start "${CONTAINER_NAME}"
-  docker exec "${CONTAINER_NAME}" bash -c "echo ${PWD}"
+  docker exec "${CONTAINER_NAME}" bash -c "git config --global --add safe.directory '*'"
   docker exec "${CONTAINER_NAME}" bash -c "cmake -Bbuild -S${SOURCE_PATH}"
   docker exec "${CONTAINER_NAME}" bash -c "cmake --build build -j8"
   docker exec "${CONTAINER_NAME}" bash -c "./build/bin/demo schemas/requirement.json"
