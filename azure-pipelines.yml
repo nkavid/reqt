@@ -5,7 +5,7 @@ trigger:
 variables:
   project: 'nkavid'
   repository: 'reqt'
-  tag: '0.0.2'
+  tag: '0.0.3'
 
 pool:
   vmImage: ubuntu-latest
@@ -21,23 +21,30 @@ steps:
     inputs:
       key: 'docker | "$(Agent.OS)" | "$(tag)" | cache'
       path: $(Pipeline.Workspace)/docker_cache
-      cacheHitVar: CACHE_RESTORED
+      cacheHitVar: IMAGE_CACHE_RESTORED
+
+  - task: Cache@2
+    displayName: "Build: Cmake build cache task"
+    inputs:
+      key: 'cmake | "$(Agent.OS)" | "0.0.4" | cache'
+      path: $(Pipeline.Workspace)/s/build
+      cacheHitVar: BUILD_CACHE_RESTORED
 
   - script: |
       docker load -i $(Pipeline.Workspace)/docker_cache/cache.tar
     displayName: 'Docker: Load image'
-    condition: and(not(canceled()), not(failed()), eq(variables.CACHE_RESTORED, 'true'))
+    condition: and(not(canceled()), not(failed()), eq(variables.IMAGE_CACHE_RESTORED, 'true'))
 
   - script: |
       ./docker.sh image
     displayName: 'Docker: Build image'
-    condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
+    condition: and(not(canceled()), not(failed()), ne(variables.IMAGE_CACHE_RESTORED, 'true'))
 
   - script: |
       mkdir -p $(Pipeline.Workspace)/docker_cache
       docker save -o $(Pipeline.Workspace)/docker_cache/cache.tar $(project)/$(repository):$(tag)
     displayName: 'Docker: Save image'
-    condition: and(not(canceled()), not(failed()), ne(variables.CACHE_RESTORED, 'true'))
+    condition: and(not(canceled()), not(failed()), ne(variables.IMAGE_CACHE_RESTORED, 'true'))
 
   - script: |
       ./docker.sh cpp
