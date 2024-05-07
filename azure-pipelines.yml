@@ -6,6 +6,7 @@ variables:
   project: 'nkavid'
   repository: 'reqt'
   tag: '0.0.3'
+  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 
 pool:
   vmImage: ubuntu-latest
@@ -29,6 +30,11 @@ steps:
       key: 'cmake | "$(Agent.OS)" | "0.0.4" | cache'
       path: $(Pipeline.Workspace)/s/build
       cacheHitVar: BUILD_CACHE_RESTORED
+
+  - download: current
+    displayName: 'Download: Build'
+    artifact: MainBuild
+    condition: and(not(canceled()), not(failed()), ne(variables.BUILD_CACHE_RESTORED, 'true'))
 
   - script: |
       docker load -i $(Pipeline.Workspace)/docker_cache/cache.tar
@@ -60,3 +66,9 @@ steps:
       ./docker.sh check
     displayName: 'Check: Run linters and autoformatters'
     condition: and(not(canceled()), not(failed()))
+
+  - publish: $(System.DefaultWorkingDirectory)/build
+    displayName: 'Publish: Build'
+    artifact: MainBuild
+    condition: and(not(canceled()), not(failed()), eq(variables.isMain, 'true'))
+
