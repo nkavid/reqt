@@ -16,5 +16,3 @@ ENV PATH=${PYTHON_VENV}/bin:${PATH}
 RUN python3 -m venv $PYTHON_VENV && \
 pip install -r requirements.txt && \
 pip check
-
-ENV CCACHE_DIR=/workspace/build/ccache
