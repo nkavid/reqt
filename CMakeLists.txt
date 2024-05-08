@@ -16,10 +16,7 @@ project(
   LANGUAGES C CXX
 )
 
-find_program(REQT_CCACHE_PROGRAM ccache REQUIRED)
-message(NOTICE "CCACHE_DIR: $ENV{CCACHE_DIR}")
-set(CMAKE_CXX_COMPILER_LAUNCHER ${REQT_CCACHE_PROGRAM})
-set(CMAKE_C_COMPILER_LAUNCHER ${REQT_CCACHE_PROGRAM})
+include(cmake/ccache.cmake)
 
 Include(FetchContent)
 
@@ -46,6 +43,7 @@ target_include_directories(json_parser PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src)
 add_executable(unit_tests)
 
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
+message(NOTICE "CCACHE_DIR: $ENV{CCACHE_DIR}")
 
 # Simplify build dependencies declarations for unit tests
 function(obj_unit_test unit)

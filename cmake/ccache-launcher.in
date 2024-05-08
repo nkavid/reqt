@@ -1,0 +1,5 @@
+#!/bin/sh
+
+${CCACHE_OPTIONS}
+
+exec "${CCACHE_PROGRAM}" "$@"
