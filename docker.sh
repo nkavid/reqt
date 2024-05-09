@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASENAME="$(basename "$0")"
-DOCKER_IMAGE_NAME="nkavid/reqt:0.0.4"
+DOCKER_IMAGE_NAME="nkavid/reqt:0.0.5"
 SOURCE_PATH=$(dirname "$0")
 
 if [[ "$1" == "image" ]]; then
@@ -46,6 +46,7 @@ if [[ "$1" == "check" ]]; then
   docker exec "${CONTAINER_NAME}" bash -c "clang-tidy -p build src/main.cpp"
   docker exec "${CONTAINER_NAME}" bash -c "clang-format --dry-run --Werror src/main.cpp" || RESULT="FAILURE"
   docker exec "${CONTAINER_NAME}" bash -c "./bin/format-json.sh schemas/requirement.json" || RESULT="FAILURE"
+  docker exec "${CONTAINER_NAME}" bash -c "yamllint azure-pipelines.yml" || RESULT="FAILURE"
   docker kill "${CONTAINER_NAME}" > /dev/null
   docker rm "${CONTAINER_NAME}"
   [[ "${RESULT}" == "FAILURE" ]] && exit 1
