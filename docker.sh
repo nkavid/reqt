@@ -1,10 +1,12 @@
 #!/bin/bash
 
 BASENAME="$(basename "$0")"
-DOCKER_IMAGE_NAME="nkavid/reqt:0.0.3"
+DOCKER_IMAGE_NAME="nkavid/reqt:0.0.4"
 SOURCE_PATH=$(dirname "$0")
 
 if [[ "$1" == "image" ]]; then
+  echo "${BASENAME} checking dockerfile..."
+  docker run --rm -i hadolint/hadolint < Dockerfile
   echo "${BASENAME} building..."
   docker build --tag "${DOCKER_IMAGE_NAME}" .
 fi
