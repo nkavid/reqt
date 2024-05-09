@@ -5,7 +5,7 @@ trigger:
 variables:
   project: 'nkavid'
   repository: 'reqt'
-  tag: '0.0.3'
+  tag: '0.0.4'
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 
 pool:
