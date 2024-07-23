@@ -2,6 +2,17 @@
 
 Requirements Tracing project with JSON
 
+## Tracing and generating diagrams as build dependency
+
+```make
+fizzbuzz_req.puml: requirements/fizzbuzz_hlr.json requirements/fizzbuzz_llr.json
+	python3 script/generate_plantuml.py \
+	--output-diagram $@ \
+	--hlr $(word 1,$^) \
+	--llr $(word 2,$^)
+	plantuml $@
+```
+
 ## References
 
  - Developing Safety-Critical Software - Leanna Rierson
